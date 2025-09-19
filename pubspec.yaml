@@ -1,0 +1,39 @@
+name: context_show
+description: >-
+  A lightweight and flexible Flutter package for showing custom overlays, banners, toasts
+  and dialogs with simple, context-based extension. Highly customizable and easy to use.
+version: 0.1.0
+repository: https://github.com/Nikoro/context_show
+issue_tracker: https://github.com/Nikoro/context_show/issues
+documentation: https://pub.dev/documentation/context_show/latest/
+topics: [overlay, toast, banner, snackbar, dialog]
+
+screenshots:
+  - description: 'Simple blue toast that slides up from the bottom and auto-dismisses after 4 seconds.'
+    path: images/1.gif
+  - description: 'Green banner that slides down from the top and can be only closed by clicking on the 
+      close icon button.'
+    path: images/2.gif
+  - description: 'Showing multiple banners with random color and random alignment and closing them one by 
+      one with separate button.'
+    path: images/3.gif
+  - description: 'Showing Flutter logo in the center with a rotation animation, on a dimmed, dismissible 
+      background.'
+    path: images/4.gif
+  - description: 'Displays a small red banner at the top center, aligned with the app bar and safe area 
+      insets.'
+    path: images/5.gif
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  meta: ^1.16.0
