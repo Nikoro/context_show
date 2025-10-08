@@ -1,3 +1,4 @@
+import 'package:context_show/app_bar_height.dart';
 import 'package:flutter/material.dart';
 
 /// A utility class to get the height of the bottom navigation bar.
@@ -28,7 +29,7 @@ abstract class BottomBarHeight {
   static double _fallbackHeight(BuildContext context) {
     final renderBox = context.findRenderObject() as RenderBox?;
     final bodyHeight = renderBox?.size.height ?? 0;
-    final appBarMaxHeight = Scaffold.maybeOf(context)?.appBarMaxHeight ?? 0;
-    return MediaQuery.sizeOf(context).height - bodyHeight - appBarMaxHeight;
+    final appBarMaxHeight = AppBarHeight.maybeOf(context) ?? 0;
+    return MediaQuery.heightOf(context) - bodyHeight - appBarMaxHeight;
   }
 }

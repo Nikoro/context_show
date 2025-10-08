@@ -63,6 +63,7 @@ Scaffold(
               style: TextStyle(color: Colors.white),
             ),
           ),
+          alignment: Alignment.bottomCenter
         ),
       ),
     ),
@@ -182,9 +183,8 @@ Scaffold(
           background: (_) => 
               Container(color: Colors.black.withAlpha(100)),
           duration: Duration.zero,
-          fullScreen: true,
+          safeArea: false,
           dismissible: true,
-          alignment: Alignment.center,
           transition: TransitionBuilders.rotation,
         ),
       ),
@@ -218,7 +218,7 @@ Scaffold(
               ),
               background: (_) => 
                   Container(color: Colors.red.withAlpha(100)),
-              fullScreen: true,
+              safeArea: false,
               dismissible: true,
               alignment: Alignment.topCenter,
               transition: Transition.slideFromBottom().rotation(),

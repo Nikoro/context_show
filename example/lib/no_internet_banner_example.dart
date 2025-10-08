@@ -50,7 +50,8 @@ class NoInternetBanner {
   static Future<void> show<T>(BuildContext context) => context.show(
     id: _id,
     duration: Duration.zero,
-    fullScreen: true,
+    safeArea: false,
+    alignment: Alignment.bottomCenter,
     (_) => Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 30),

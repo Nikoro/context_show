@@ -65,18 +65,33 @@ extension ContextShow on BuildContext {
   Future<T?> show<T>(
     Widget Function(OverlayController<T> overlay) builder, {
     Duration duration = const Duration(milliseconds: 4000),
-    Alignment alignment = Alignment.bottomCenter,
+    Alignment alignment = Alignment.center,
+    Alignment backgroundAlignment = Alignment.center,
     Duration animationDuration = kThemeAnimationDuration,
+    bool dismissible = false,
+    bool rootOverlay = false,
     Widget Function(OverlayController<T> overlay)? background,
+    Widget Function(Widget child)? clipper,
+    Widget Function(Widget child)? backgroundClipper,
     Widget Function(AnimationController controller, Widget child)? transition,
     Widget Function(AnimationController controller, Widget child)?
         backgroundTransition,
-    bool dismissible = false,
-    bool fullScreen = false,
+    bool? safeArea,
+    EdgeInsets? margin,
+    EdgeInsets? backgroundMargin,
     String? id,
   }) {
+    assert(
+      !(margin != null && backgroundMargin != null && safeArea != null),
+      '⚠️ ContextShow: margin, backgroundMargin, and safeArea were all provided.\n'
+      'When both margins are set, the safeArea flag is ignored.\n'
+      'To avoid confusion, omit safeArea or one of the margins.',
+    );
+
+    safeArea = safeArea ?? true;
+
     final completer = Completer<T?>();
-    final navigator = Navigator.of(this, rootNavigator: fullScreen);
+    final navigator = Navigator.of(this, rootNavigator: rootOverlay);
 
     late final OverlayEntry entry;
     late final OverlayCloser closer;
@@ -102,48 +117,83 @@ extension ContextShow on BuildContext {
       _closers.remove(closer);
     }
 
-    final overlaySafeArea = OverlaySafeArea.fromContext(this);
+    final overlaySafeArea =
+        OverlaySafeArea.of(rootOverlay ? navigator.context : this);
     final overlayController = OverlayController<T>(close, overlaySafeArea);
+
+    Widget backgroundContent =
+        background?.call(overlayController) ?? const SizedBox.expand();
+
+    if (background != null) {
+      if (backgroundTransition != null) {
+        backgroundContent = backgroundTransition(controller, backgroundContent);
+      } else {
+        backgroundContent = FadeTransition(
+          opacity: fade,
+          child: backgroundContent,
+        );
+      }
+    }
+
+    backgroundContent = GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: dismissible ? close : null,
+      child: backgroundContent,
+    );
+
+    if (backgroundClipper != null) {
+      backgroundContent = backgroundClipper(backgroundContent);
+    }
+
+    backgroundMargin = backgroundMargin ??
+        (safeArea ? overlaySafeArea.insets : EdgeInsets.zero);
+
+    if (backgroundMargin != EdgeInsets.zero) {
+      backgroundContent =
+          Padding(padding: backgroundMargin, child: backgroundContent);
+    }
+
+    backgroundContent = Align(
+      alignment: backgroundAlignment,
+      child: backgroundContent,
+    );
+
+    Widget content = builder(overlayController);
+
+    if (transition != null) {
+      content = transition(controller, content);
+    } else {
+      content = alignment == Alignment.center
+          ? FadeTransition(
+              opacity: fade,
+              child: content,
+            )
+          : SlideTransition(
+              position: slide,
+              child: content,
+            );
+    }
+
+    if (clipper != null) {
+      content = clipper(content);
+    }
+
+    margin = margin ?? (safeArea ? overlaySafeArea.insets : EdgeInsets.zero);
+
+    if (margin != EdgeInsets.zero) {
+      content = Padding(padding: margin, child: content);
+    }
+
+    content = Align(
+      alignment: alignment,
+      child: content,
+    );
 
     entry = OverlayEntry(
       builder: (context) => Material(
         type: MaterialType.transparency,
-        child: Padding(
-          padding:
-              fullScreen ? EdgeInsetsGeometry.zero : overlaySafeArea.insets,
-          child: Stack(
-            children: [
-              GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: dismissible ? close : null,
-                child: background != null
-                    ? backgroundTransition != null
-                        ? backgroundTransition(
-                            controller,
-                            background(overlayController),
-                          )
-                        : FadeTransition(
-                            opacity: fade,
-                            child: background(overlayController),
-                          )
-                    : const SizedBox.expand(),
-              ),
-              Align(
-                alignment: alignment,
-                child: transition != null
-                    ? transition(controller, builder(overlayController))
-                    : alignment == Alignment.center
-                        ? FadeTransition(
-                            opacity: fade,
-                            child: builder(overlayController),
-                          )
-                        : SlideTransition(
-                            position: slide,
-                            child: builder(overlayController),
-                          ),
-              ),
-            ],
-          ),
+        child: Stack(
+          children: [backgroundContent, content],
         ),
       ),
     );

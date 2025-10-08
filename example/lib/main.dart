@@ -34,8 +34,7 @@ class HomePage extends StatelessWidget {
             ),
             onPressed: () => context.show(
               (overlay) => Toast.green(overlay.close),
-              alignment: Alignment.center,
-              fullScreen: true,
+              safeArea: false,
               background: (_) => Container(color: Colors.yellow.withAlpha(100)),
             ),
           ),
@@ -47,7 +46,7 @@ class HomePage extends StatelessWidget {
               (_) => FlutterLogo(size: 200),
               duration: Duration.zero,
               dismissible: true,
-              alignment: Alignment.center,
+              safeArea: false,
               background: (_) => Container(color: Colors.black.withAlpha(100)),
               transition: TransitionBuilders.rotation,
             ),

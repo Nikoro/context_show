@@ -15,7 +15,7 @@ class OverlaySafeArea {
   });
 
   /// Creates an [OverlaySafeArea] from the given [context].
-  factory OverlaySafeArea.fromContext(BuildContext context) {
+  factory OverlaySafeArea.of(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
     return OverlaySafeArea(
       top: AppBarHeight.maybeOf(context) ?? padding.top,
