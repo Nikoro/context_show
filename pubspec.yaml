@@ -2,7 +2,7 @@ name: context_show
 description: >-
   A lightweight and flexible Flutter package for showing custom overlays, banners, toasts
   and dialogs with simple, context-based extension. Highly customizable and easy to use.
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/Nikoro/context_show
 issue_tracker: https://github.com/Nikoro/context_show/issues
 documentation: https://pub.dev/documentation/context_show/latest/
