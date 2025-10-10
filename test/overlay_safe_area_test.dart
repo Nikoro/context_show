@@ -17,7 +17,7 @@ void main() {
       );
 
       final context = tester.element(find.byType(Placeholder));
-      final safeArea = OverlaySafeArea.fromContext(context);
+      final safeArea = OverlaySafeArea.of(context);
 
       expect(safeArea.top, 20);
       expect(safeArea.bottom, 40);
@@ -45,7 +45,7 @@ void main() {
       );
 
       final context = tester.element(find.byType(Placeholder));
-      final safeArea = OverlaySafeArea.fromContext(context);
+      final safeArea = OverlaySafeArea.of(context);
 
       expect(safeArea.top, customAppBarHeight);
       expect(safeArea.bottom, customBottomBarHeight);
