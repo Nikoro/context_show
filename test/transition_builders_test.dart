@@ -11,7 +11,10 @@ void main() {
 
     testWidgets('fade returns FadeTransition', (tester) async {
       final widget = TransitionBuilders.fade(controller, const Placeholder());
-      await tester.pumpWidget(MaterialApp(home: widget));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: widget,
+      ));
       expect(find.byType(FadeTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
@@ -21,21 +24,30 @@ void main() {
         controller,
         const Placeholder(),
       );
-      await tester.pumpWidget(MaterialApp(home: widget));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: widget,
+      ));
       expect(find.byType(RotationTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
 
     testWidgets('scale returns ScaleTransition', (tester) async {
       final widget = TransitionBuilders.scale(controller, const Placeholder());
-      await tester.pumpWidget(MaterialApp(home: widget));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: widget,
+      ));
       expect(find.byType(ScaleTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
 
     testWidgets('size returns SizeTransition', (tester) async {
       final widget = TransitionBuilders.size(controller, const Placeholder());
-      await tester.pumpWidget(MaterialApp(home: widget));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: widget,
+      ));
       expect(find.byType(SizeTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
@@ -45,7 +57,10 @@ void main() {
         controller,
         const Placeholder(),
       );
-      await tester.pumpWidget(MaterialApp(home: widget));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: widget,
+      ));
       expect(find.byType(SlideTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
@@ -55,7 +70,10 @@ void main() {
         controller,
         const Placeholder(),
       );
-      await tester.pumpWidget(MaterialApp(home: widget));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: widget,
+      ));
       expect(find.byType(SlideTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
@@ -65,7 +83,10 @@ void main() {
         controller,
         const Placeholder(),
       );
-      await tester.pumpWidget(MaterialApp(home: widget));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: widget,
+      ));
       expect(find.byType(SlideTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
@@ -75,7 +96,10 @@ void main() {
         controller,
         const Placeholder(),
       );
-      await tester.pumpWidget(MaterialApp(home: widget));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: widget,
+      ));
       expect(find.byType(SlideTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });

@@ -12,35 +12,50 @@ void main() {
 
     testWidgets('fade produces FadeTransition', (tester) async {
       final transition = Transition.fade();
-      await tester.pumpWidget(MaterialApp(home: transition(controller, child)));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: transition(controller, child),
+      ));
       expect(find.byType(FadeTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
 
     testWidgets('rotation produces RotationTransition', (tester) async {
       final transition = Transition.rotation();
-      await tester.pumpWidget(MaterialApp(home: transition(controller, child)));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: transition(controller, child),
+      ));
       expect(find.byType(RotationTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
 
     testWidgets('scale produces ScaleTransition', (tester) async {
       final transition = Transition.scale();
-      await tester.pumpWidget(MaterialApp(home: transition(controller, child)));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: transition(controller, child),
+      ));
       expect(find.byType(ScaleTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
 
     testWidgets('slideFromTop produces SlideTransition', (tester) async {
       final transition = Transition.slideFromTop();
-      await tester.pumpWidget(MaterialApp(home: transition(controller, child)));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: transition(controller, child),
+      ));
       expect(find.byType(SlideTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
     });
 
     testWidgets('and chains multiple transitions', (tester) async {
       final transition = Transition.fade().and(Transition.rotation());
-      await tester.pumpWidget(MaterialApp(home: transition(controller, child)));
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: transition(controller, child),
+      ));
       expect(find.byType(FadeTransition), findsOneWidget);
       expect(find.byType(RotationTransition), findsOneWidget);
       expect(find.byType(Placeholder), findsOneWidget);
@@ -61,7 +76,10 @@ void main() {
       ];
 
       for (final t in variants) {
-        await tester.pumpWidget(MaterialApp(home: t(controller, child)));
+        await tester.pumpWidget(Directionality(
+          textDirection: TextDirection.ltr,
+          child: t(controller, child),
+        ));
         expect(find.byType(SlideTransition), findsOneWidget);
         expect(find.byType(Placeholder), findsOneWidget);
       }
