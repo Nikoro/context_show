@@ -12,47 +12,48 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 8,
-        children: [
-          ElevatedButton(
-            child: Text('Show Banner with id: 1'),
-            onPressed: () => Banner.show(context, '1'),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 8,
+            children: [
+              ElevatedButton(
+                child: Text('Show Banner with id: 1'),
+                onPressed: () => Banner.show(context, '1'),
+              ),
+              ElevatedButton(
+                child: Text('Show Banner with id: 2'),
+                onPressed: () => Banner.show(context, '2'),
+              ),
+              ElevatedButton(
+                child: Text('Close all with id: 1'),
+                onPressed: () =>
+                    context.close((overlays) => overlays.byId('1')),
+              ),
+              ElevatedButton(
+                child: Text('Close all with id: 2'),
+                onPressed: () => context.close(Overlays.all(id: '2')),
+              ),
+              ElevatedButton(
+                child: Text('Close last'),
+                onPressed: () => context.close(),
+              ),
+              ElevatedButton(
+                child: Text('Close first'),
+                onPressed: () => context.close((overlays) => overlays.first),
+              ),
+              ElevatedButton(
+                child: Text('Close first'),
+                onPressed: () => context.close(Overlays.first()),
+              ),
+              ElevatedButton(
+                child: Text('Close all'),
+                onPressed: () => context.close(Overlays.all()),
+              ),
+            ],
           ),
-          ElevatedButton(
-            child: Text('Show Banner with id: 2'),
-            onPressed: () => Banner.show(context, '2'),
-          ),
-          ElevatedButton(
-            child: Text('Close all with id: 1'),
-            onPressed: () => context.close((overlays) => overlays.byId('1')),
-          ),
-          ElevatedButton(
-            child: Text('Close all with id: 2'),
-            onPressed: () => context.close(Overlays.all(id: '2')),
-          ),
-          ElevatedButton(
-            child: Text('Close last'),
-            onPressed: () => context.close(),
-          ),
-          ElevatedButton(
-            child: Text('Close first'),
-            onPressed: () => context.close((overlays) => overlays.first),
-          ),
-          ElevatedButton(
-            child: Text('Close first'),
-            onPressed: () => context.close(Overlays.first()),
-          ),
-          ElevatedButton(
-            child: Text('Close all'),
-            onPressed: () => context.close(Overlays.all()),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class Banner<T> {

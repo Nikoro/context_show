@@ -160,4 +160,207 @@ void main() {
       expect(result, equals(resultValue));
     });
   });
+
+  group('context.close', () {
+    testWithContext('closes last overlay by default', (tester, context) async {
+      context.show((_) => const Text('First'), duration: Duration.zero);
+      final future =
+          context.show((_) => const Text('Second'), duration: Duration.zero);
+
+      await tester.pumpAndSettle();
+      expect(find.text('First'), findsOneWidget);
+      expect(find.text('Second'), findsOneWidget);
+
+      context.close();
+      await tester.pumpAndSettle();
+
+      expect(find.text('First'), findsOneWidget);
+      expect(find.text('Second'), findsNothing);
+
+      await future;
+
+      // Cleanup
+      context.close(Overlays.all());
+      await tester.pumpAndSettle();
+    });
+
+    testWithContext('closes overlay with selector', (tester, context) async {
+      final future =
+          context.show((_) => const Text('First'), duration: Duration.zero);
+      context.show((_) => const Text('Second'), duration: Duration.zero);
+
+      await tester.pumpAndSettle();
+      expect(find.text('First'), findsOneWidget);
+      expect(find.text('Second'), findsOneWidget);
+
+      context.close(Overlays.first());
+      await tester.pumpAndSettle();
+
+      expect(find.text('First'), findsNothing);
+      expect(find.text('Second'), findsOneWidget);
+
+      await future;
+
+      // Cleanup
+      context.close(Overlays.all());
+      await tester.pumpAndSettle();
+    });
+
+    testWithContext('closes overlay with result', (tester, context) async {
+      const resultValue = 'test_result';
+      final future = context.show<String>(
+        (_) => const Text('Overlay'),
+        duration: Duration.zero,
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('Overlay'), findsOneWidget);
+
+      context.close(resultValue);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Overlay'), findsNothing);
+      expect(await future, equals(resultValue));
+    });
+
+    testWithContext(
+      'closes overlay with selector and result',
+      (tester, context) async {
+        const resultValue = 42;
+        final future = context.show<int>((_) => const Text('First'),
+            duration: Duration.zero);
+        context.show<int>(
+          (_) => const Text('Second'),
+          duration: Duration.zero,
+        );
+
+        await tester.pumpAndSettle();
+        expect(find.text('First'), findsOneWidget);
+        expect(find.text('Second'), findsOneWidget);
+
+        context.close(Overlays.first(), resultValue);
+        await tester.pumpAndSettle();
+        expect(find.text('First'), findsNothing);
+        expect(find.text('Second'), findsOneWidget);
+        expect(await future, equals(resultValue));
+
+        // Cleanup
+        context.close(Overlays.all());
+        await tester.pumpAndSettle();
+      },
+    );
+
+    testWithContext(
+      'closes overlay with swapped parameters (result, selector)',
+      (tester, context) async {
+        const resultValue = 'swapped';
+        final future = context.show<String>(
+          (_) => const Text('First'),
+          duration: Duration.zero,
+        );
+        context.show<String>(
+          (_) => const Text('Second'),
+          duration: Duration.zero,
+        );
+
+        await tester.pumpAndSettle();
+        expect(find.text('First'), findsOneWidget);
+        expect(find.text('Second'), findsOneWidget);
+
+        // Pass result first, then selector
+        context.close(resultValue, Overlays.first());
+        await tester.pumpAndSettle();
+
+        expect(find.text('First'), findsNothing);
+        expect(find.text('Second'), findsOneWidget);
+        expect(await future, equals(resultValue));
+
+        // Cleanup
+        context.close(Overlays.all());
+        await tester.pumpAndSettle();
+      },
+    );
+
+    testWithContext('closes overlay by ID', (tester, context) async {
+      final future = context.show(
+        (_) => const Text('First'),
+        id: 'first',
+        duration: Duration.zero,
+      );
+      context.show(
+        (_) => const Text('Second'),
+        id: 'second',
+        duration: Duration.zero,
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('First'), findsOneWidget);
+      expect(find.text('Second'), findsOneWidget);
+
+      context.close(Overlays.first(id: 'first'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('First'), findsNothing);
+      expect(find.text('Second'), findsOneWidget);
+      await future;
+
+      // Cleanup
+      context.close(Overlays.all());
+      await tester.pumpAndSettle();
+    });
+
+    testWithContext('closes all overlays', (tester, context) async {
+      context.show(
+        (_) => const Text('First'),
+        duration: Duration.zero,
+      );
+      context.show(
+        (_) => const Text('Second'),
+        duration: Duration.zero,
+      );
+      context.show(
+        (_) => const Text('Third'),
+        duration: Duration.zero,
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('First'), findsOneWidget);
+      expect(find.text('Second'), findsOneWidget);
+      expect(find.text('Third'), findsOneWidget);
+
+      context.close(Overlays.all());
+      await tester.pumpAndSettle();
+
+      expect(find.text('First'), findsNothing);
+      expect(find.text('Second'), findsNothing);
+      expect(find.text('Third'), findsNothing);
+    });
+
+    testWithContext('closes with custom selector', (tester, context) async {
+      final future = context.show(
+        (_) => const Text('First'),
+        id: 'target',
+        duration: Duration.zero,
+      );
+      context.show(
+        (_) => const Text('Second'),
+        duration: Duration.zero,
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('First'), findsOneWidget);
+      expect(find.text('Second'), findsOneWidget);
+
+      context.close((overlays) => overlays.firstWhere((c) => c.id == 'target'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('First'), findsNothing);
+      expect(find.text('Second'), findsOneWidget);
+      await future;
+
+      // Cleanup
+      context.close(Overlays.all());
+      await tester.pumpAndSettle();
+    });
+  });
 }
