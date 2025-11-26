@@ -274,6 +274,13 @@ extension ContextShow on BuildContext {
     final isSecondSelector =
         resultOrSelector is Function(Iterable<OverlayCloser>);
 
+    // Validate that both parameters are not selectors
+    if (isFirstSelector && isSecondSelector) {
+      throw ArgumentError(
+        'Cannot pass two selector functions. Expected (selector, result) or (result, selector).',
+      );
+    }
+
     final selector = isFirstSelector
         ? selectorOrResult
         : (isSecondSelector ? resultOrSelector : null);
