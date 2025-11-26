@@ -362,5 +362,30 @@ void main() {
       context.close(Overlays.all());
       await tester.pumpAndSettle();
     });
+
+    testWithContext(
+      'throws ArgumentError when two selectors are passed',
+      (tester, context) async {
+        context.show(
+          (_) => const Text('First'),
+          duration: Duration.zero,
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          () => context.close(Overlays.first(), Overlays.last()),
+          throwsA(isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            'Cannot pass two selector functions. Expected (selector, result) or (result, selector).',
+          )),
+        );
+
+        // Cleanup
+        context.close(Overlays.all());
+        await tester.pumpAndSettle();
+      },
+    );
   });
 }
