@@ -1,3 +1,35 @@
+## 0.3.0
+
+This release improves the `context.close()` API with flexible parameter ordering and includes CI/CD workflow improvements.
+
+### 💥 Breaking Changes
+
+- **`context.close()` signature changed to support flexible parameter ordering**
+  - Parameters can now be passed in any order: `(selector, result)` or `(result, selector)`
+  - Automatic detection of parameter types for improved developer experience
+  - This change may affect code that explicitly relies on positional parameter ordering
+
+```dart
+// Both parameter orders now work
+context.close(Overlays.first(), 'result_value');
+context.close('result_value', Overlays.first());
+
+// With custom selectors
+context.close((overlays) => overlays.byId('myId'), 'result_value');
+context.close('result_value', (overlays) => overlays.byId('myId'));
+```
+
+### ✨ New Features
+
+- **Flexible parameter ordering for `context.close()`**
+  - Pass parameters in any order for better ergonomics
+  - Support for closing with selector, result, or both
+  - Enhanced documentation and examples
+- Add comprehensive test suite for `context.close()` functionality
+- Simplify CI workflows and add streamlined testing, formatting, and release automation
+
+---
+
 ## 0.2.0
 
 This release introduces a major API refactoring to provide more granular control over overlay layouts and improve flexibility.

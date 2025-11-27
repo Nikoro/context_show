@@ -6,7 +6,7 @@
     <img alt="Pub Package" src="https://tinyurl.com/ymd6xben">
   </a>
   <a href="https://github.com/Nikoro/context_show/actions">
-    <img alt="Build Status" src="https://github.com/Nikoro/context_show/actions/workflows/build.yaml/badge.svg">
+    <img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/Nikoro/context_show/ci.yaml?label=build">
   </a>
   <a href="https://opensource.org/licenses/MIT">
     <img alt="MIT License" src="https://tinyurl.com/3uf9tzpy">

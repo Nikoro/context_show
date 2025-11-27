@@ -36,9 +36,12 @@ jobs:
       
       - name: Dry run publish
         run: dart pub publish --dry-run
+
+      - name: Setup Dart SDK for OIDC authentication
+        uses: dart-lang/setup-dart@v1
       
       - name: Publish to pub.dev
-        run: dart pub publish --force --skip-validation
+        run: dart pub publish --force
   
   release:
     needs: publish
