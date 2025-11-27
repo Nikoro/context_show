@@ -251,12 +251,18 @@ Use the `Overlays` class to target specific overlays:
 ```dart
 // Close the first overlay
 context.close(Overlays.first());
+// or
+context.close((overlays) => overlays.first);
 
 // Close the last overlay
 context.close(Overlays.last());
+// or
+context.close((overlays) => overlays.last);
 
 // Close all overlays
 context.close(Overlays.all());
+// or
+context.close((overlays) => overlays);
 ```
 
 ### Closing Overlays by ID
@@ -272,9 +278,13 @@ context.show(
 
 // Close specific overlay by ID
 context.close(Overlays.first(id: 'my-banner'));
+//or
+context.close((overlays) => overlays.byId('my-banner').first);
 
 // Close all overlays with the same ID
 context.close(Overlays.all(id: 'notification'));
+//or
+context.close((overlays) => overlays.byId('notification'));
 ```
 
 ### Custom Selectors
@@ -282,7 +292,7 @@ context.close(Overlays.all(id: 'notification'));
 Use a custom function to select which overlays to close:
 
 ```dart
-// Close overlays by ID using a custom selector
+// Close all overlays by ID using a custom selector
 context.close((overlays) => overlays.byId('banner-1'));
 
 // Close the first overlay matching a condition
@@ -308,14 +318,14 @@ class Page extends StatelessWidget {
             onPressed: () async {
               // Show overlay and await the result
               final result = await context.show<String>((_) => Text('Banner'));
-              print('$result'); // some result
+              print('$result'); // SOME RESULT
             },
           ),
           ElevatedButton(
             child: Text('Close with Result'),
             onPressed: () {
-              // Close overlay from a different callback and return a string
-              context.close('some result');
+              // Close overlay from a different callback and return some value:
+              context.close('SOME RESULT');
             },
           ),
         ],
@@ -344,7 +354,8 @@ void showNoInternetBanner(BuildContext context) {
 // Close it when connection is restored from anywhere in the app
 // BuildContext can be completely different - any context works
 void onConnectionRestored(BuildContext context) {
-  context.close((overlays) => overlays.byId('no-internet'));
+  context.close((overlays) => overlays.byId('no-internet')); 
+  // or use this syntax: 
+  // context.close(Overlays.all('no-internet'));
 }
 ```
-
