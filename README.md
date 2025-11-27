@@ -27,8 +27,8 @@ Say goodbye to boilerplate code for managing `OverlayEntry` and `AnimationContro
 - 🪄 **Simple API**: Show your widget with a single line of code: `context.show(...)`.
 - 🎯 **Flexible alignment** – display widgets at any screen position (`top`, `bottom`, `center`, etc.).
 - 🎨 **Customizable transitions** – `fade`, `scale`, `slide`, `rotate`, or compose your own.
-- ✅ **Customizable Alignment**: Display widgets at any position on the screen (top, bottom, center, etc.).
-- 🧩 **Composable animations** – chain multiple transitions fluently .`fade().scale().rotation()`.
+- 🧩 **Composable animations** – chain multiple transitions fluently `.fade().scale().rotation()`.
+- 🎛️ **Programmatic control** – close overlays from anywhere using `context.close()` with flexible selectors.
 - 🖼️ **Custom Background**: add custom backgrounds or animated backdrops.
 - 👆 **Dismissible overlays** – tap outside to close with ease.
 - ⏱️ **Auto-dismiss** – control duration or disable with `Duration.zero`.
@@ -114,11 +114,11 @@ Scaffold(
  </tr>
  <tr>
     <th colspan="2" style="text-align: center; font-weight: bold;">
-      Showing multiple banners with random color and random alignment and closing them one by one with separate button
+      Showing multiple banners with random color and random alignment and closing them with context.close()
     </th>
   </tr>
   <tr>
-    <td valign="top"><img src="https://raw.githubusercontent.com/nikoro/context_show/main/images/3.gif"  width="200" alt="Showing multiple banners with random color with random alignment and closing them one by one with separate button demo"/>
+    <td valign="top"><img src="https://raw.githubusercontent.com/nikoro/context_show/main/images/3.gif"  width="200" alt="Showing multiple banners with random color with random alignment and closing them with context.close() demo"/>
     </td>
     <td valign="top">
     <pre><code class="language-dart">
@@ -231,4 +231,133 @@ Scaffold(
   );
   </code></pre></td>
   </tr>               
-</table> 
+</table>
+
+## Closing Overlays Programmatically
+
+The `context.close()` method allows you to close overlays from anywhere in your code. You can close individual overlays, multiple overlays, or all overlays at once using flexible selectors.
+
+### Basic Usage
+
+```dart
+// Close the last shown overlay (default behavior)
+context.close();
+```
+
+### Closing Specific Overlays
+
+Use the `Overlays` class to target specific overlays:
+
+```dart
+// Close the first overlay
+context.close(Overlays.first());
+// or
+context.close((overlays) => overlays.first);
+
+// Close the last overlay
+context.close();
+// or
+context.close(Overlays.last());
+// or
+context.close((overlays) => overlays.last);
+
+// Close all overlays
+context.close(Overlays.all());
+// or
+context.close((overlays) => overlays);
+```
+
+### Closing Overlays by ID
+
+Assign an `id` when showing an overlay, then close it by that ID:
+
+```dart
+// Show overlay with an ID
+context.show(
+  (_) => MyWidget(),
+  id: 'my-banner',
+);
+
+// Close specific overlay by ID
+context.close(Overlays.first(id: 'my-banner'));
+//or
+context.close((overlays) => overlays.byId('my-banner').first);
+
+// Close all overlays with the same ID
+context.close(Overlays.all(id: 'notification'));
+//or
+context.close((overlays) => overlays.byId('notification'));
+```
+
+### Custom Selectors
+
+Use a custom function to select which overlays to close:
+
+```dart
+// Close all overlays by ID using a custom selector
+context.close((overlays) => overlays.byId('banner-1'));
+
+// Close the first overlay matching a condition
+context.close((overlays) => overlays.first);
+
+// Close multiple overlays with custom logic
+context.close((overlays) => overlays.where((o) => o.id?.startsWith('temp-') ?? false));
+```
+
+### Returning Results from Overlays
+
+You can return values when closing overlays from anywhere in your code:
+
+```dart
+class Page extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          ElevatedButton(
+            child: Text('Show'),
+            onPressed: () async {
+              // Show overlay and await the result
+              final result = await context.show<String>((_) => Text('Banner'));
+              print('$result'); // SOME RESULT
+            },
+          ),
+          ElevatedButton(
+            child: Text('Close with Result'),
+            onPressed: () {
+              // Close overlay from a different callback and return some value:
+              context.close('SOME RESULT');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### Real-World Example: No Internet Banner
+
+```dart
+// Show a "no internet" banner
+void showNoInternetBanner(BuildContext context) {
+  context.show(
+    (_) => Container(
+      color: Colors.orange,
+      padding: EdgeInsets.all(20),
+      child: Text('No Internet Connection'),
+    ),
+    id: 'no-internet',
+    duration: Duration.zero, // Won't close automatically
+  );
+}
+
+// Close it when connection is restored from anywhere in the app
+// BuildContext can be completely different - any context works
+void onConnectionRestored(BuildContext context) {
+  context.close((overlays) => overlays.byId('no-internet')); 
+  // or use this syntax: 
+  context.close(Overlays.all(id: 'no-internet'));
+}
+```

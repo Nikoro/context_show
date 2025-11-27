@@ -213,11 +213,78 @@ extension ContextShow on BuildContext {
     return completer.future;
   }
 
-  Future<void> close([
-    dynamic Function(Iterable<OverlayCloser> overlays)? selector,
-    Object? result,
-  ]) async {
+  /// Closes overlays shown via [show] in this context.
+  ///
+  /// This method supports flexible parameter ordering and multiple use cases:
+  ///
+  /// **Default behavior:**
+  ///   - If called with no arguments, closes the last overlay.
+  ///
+  /// **Selectors:**
+  ///   - You can pass a selector function to choose which overlay(s) to close.
+  ///     The selector receives an iterable of all active [OverlayCloser]s and should
+  ///     return either a single [OverlayCloser] or an iterable of them.
+  ///     Example:
+  ///     ```dart
+  ///     // Close all overlays
+  ///     context.close((overlays) => overlays);
+  ///     // or
+  ///     context.close(Overlays.all());
+  ///     // Close the first overlay
+  ///     context.close((overlays) => overlays.first);
+  ///     // or
+  ///     context.close(Overlays.first());
+  ///     ```
+  ///
+  /// **Passing results:**
+  ///   - You can pass a result to overlays, which will be delivered to their
+  ///     completers/futures.
+  ///     Example:
+  ///     ```dart
+  ///     context.close('my result');
+  ///     ```
+  ///
+  /// **Flexible parameter ordering:**
+  ///   - You can pass both a selector and a result, in any order:
+  ///     - `context.close(selector, result)`
+  ///     - `context.close(result, selector)`
+  ///     The method will detect which argument is the selector and which is the result.
+  ///     Example:
+  ///     ```dart
+  ///     context.close((overlays) => overlays.first, 'my result');
+  ///     context.close('my result', (overlays) => overlays.first);
+  ///     // or
+  ///     context.close(Overlays.first(), 'my result');
+  ///     context.close('my result', Overlays.first());
+  ///     ```
+  ///
+  /// **Common use cases:**
+  ///   - Close the last overlay: `context.close();`
+  ///   - Close all overlays: `context.close((overlays) => overlays);` or `context.close(Overlays.all());`
+  ///   - Close the last overlay with a result: `context.close('result');`
+  ///   - Close a specific overlay with a result: `context.close((overlays) => overlays.first, 'result');` or `context.close(Overlays.first(), 'result');`
+  ///
+  /// Throws [ResultTypeMismatchError] if the result type does not match the expected type.
+  Future<void> close(
+      [dynamic selectorOrResult, dynamic resultOrSelector]) async {
     if (_closers.isEmpty) return;
+
+    final isFirstSelector =
+        selectorOrResult is Function(Iterable<OverlayCloser>);
+    final isSecondSelector =
+        resultOrSelector is Function(Iterable<OverlayCloser>);
+
+    // Validate that both parameters are not selectors
+    if (isFirstSelector && isSecondSelector) {
+      throw ArgumentError(
+        'Cannot pass two selector functions. Expected (selector, result) or (result, selector).',
+      );
+    }
+
+    final selector = isFirstSelector
+        ? selectorOrResult
+        : (isSecondSelector ? resultOrSelector : null);
+    final finalResult = isFirstSelector ? resultOrSelector : selectorOrResult;
 
     final selected = (selector ?? Overlays.last())(List.unmodifiable(_closers));
 
@@ -230,16 +297,17 @@ extension ContextShow on BuildContext {
               );
 
     for (final closer in selectedClosers) {
-      if (!_isTypeCompatible(closer.type, result.runtimeType, result)) {
+      if (!_isTypeCompatible(
+          closer.type, finalResult.runtimeType, finalResult)) {
         throw ResultTypeMismatchError(
           id: closer.id,
           expected: closer.type,
-          actual: result.runtimeType,
-          result: result,
+          actual: finalResult.runtimeType,
+          result: finalResult,
         );
       }
     }
-    await selectedClosers.map((closer) => closer.function(result)).wait;
+    await selectedClosers.map((closer) => closer.function(finalResult)).wait;
   }
 
   bool _isTypeCompatible(Type expected, Type actual, Object? result) {

@@ -20,16 +20,16 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _subscription =
         Stream.periodic(Duration(seconds: 5), (count) => count.isEven).listen((
-          hasNoInternet,
-        ) {
-          if (!mounted) return;
+      hasNoInternet,
+    ) {
+      if (!mounted) return;
 
-          if (hasNoInternet) {
-            NoInternetBanner.show(context);
-          } else {
-            NoInternetBanner.close(context);
-          }
-        });
+      if (hasNoInternet) {
+        NoInternetBanner.show(context);
+      } else {
+        NoInternetBanner.close(context);
+      }
+    });
   }
 
   @override
@@ -48,17 +48,17 @@ class NoInternetBanner {
   static const _id = 'some_no_internet_banner_id';
 
   static Future<void> show<T>(BuildContext context) => context.show(
-    id: _id,
-    duration: Duration.zero,
-    safeArea: false,
-    alignment: Alignment.bottomCenter,
-    (_) => Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 30),
-      color: Colors.yellow,
-      child: Text('No internet', textAlign: TextAlign.center),
-    ),
-  );
+        id: _id,
+        duration: Duration.zero,
+        safeArea: false,
+        alignment: Alignment.bottomCenter,
+        (_) => Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(vertical: 30),
+          color: Colors.yellow,
+          child: Text('No internet', textAlign: TextAlign.center),
+        ),
+      );
 
   static void close(BuildContext context) =>
       context.close((overlays) => overlays.byId(_id));
