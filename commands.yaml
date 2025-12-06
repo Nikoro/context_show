@@ -1,0 +1,6 @@
+format: ## Check code formatting
+  script: dart format --output=none --set-exit-if-changed .
+analyze: ## Static code analysis
+  script: flutter analyze --no-pub --no-congratulate
+tests: ## Run unit tests
+  script: flutter test --no-pub --test-randomize-ordering-seed=random
