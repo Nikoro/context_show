@@ -1,3 +1,21 @@
+## 0.3.2
+
+This release fixes safe area insets being lost when an overlay is shown from a page that rebuilt in the same turn.
+
+### 🐛 Bug Fixes
+
+- **Safe area insets are no longer lost when the page rebuilds in the same turn as `show`**
+  - The downward search for a `Scaffold` bailed out whenever the context was
+    `dirty`, which only means a rebuild is scheduled — the element still holds
+    its previous children and walks fine.
+  - Any page that changed state in the same turn it showed an overlay — a
+    dialog flipping a flag, a provider landing — lost the app bar height and
+    dropped the banner back onto the status bar.
+  - The guard is now keyed on `debugDoingBuild`, the condition that actually
+    makes the child list unsafe to walk. That signal is debug-only, so the walk
+    is wrapped in a `FlutterError` catch to keep release builds on the
+    `MediaQuery` fallback rather than crashing.
+
 ## 0.3.1
 
 This release fixes how overlays position themselves against the surrounding chrome, and stops closers from outliving the overlays they belong to.
