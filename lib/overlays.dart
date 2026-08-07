@@ -1,5 +1,4 @@
 import 'package:context_show/context_show.dart';
-import 'package:context_show/overlay_closer.dart';
 
 /// A utility class to select overlays to close.
 ///

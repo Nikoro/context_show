@@ -8,6 +8,9 @@ import 'package:context_show/overlays.dart';
 import 'package:flutter/material.dart';
 
 export 'package:context_show/extensions.dart';
+export 'package:context_show/overlay_closer.dart';
+export 'package:context_show/overlay_controller.dart';
+export 'package:context_show/overlay_safe_area.dart';
 export 'package:context_show/overlays.dart';
 export 'package:context_show/transition.dart';
 export 'package:context_show/transition_builders.dart';
@@ -44,8 +47,20 @@ extension ContextShow on BuildContext {
   /// If [dismissible] is true, the overlay can be dismissed by tapping the
   /// background.
   ///
-  /// If [fullScreen] is true, the overlay will be shown in full screen,
-  /// ignoring the safe area.
+  /// The overlay always spans the whole screen — the app bar and status bar
+  /// included. [safeArea], [margin] and [backgroundMargin] only decide where
+  /// the content is placed inside it:
+  ///
+  /// - [safeArea] defaults to true, insetting the content so it clears the
+  ///   status bar, app bar and bottom bar.
+  /// - `safeArea: false` draws edge to edge, over the app bar and status bar.
+  /// - [margin] overrides both with an explicit inset, so you can clear the
+  ///   status bar but deliberately paint over the app bar.
+  ///
+  /// [margin] applies to the content and [backgroundMargin] to the
+  /// [background], so a full-bleed backdrop can sit under inset content.
+  /// `overlay.safeArea` is passed to [builder], letting you apply the insets
+  /// yourself — per edge, if you want.
   ///
   /// The [id] is an optional identifier for the overlay. It can be used to
   /// close a specific overlay.
@@ -96,6 +111,11 @@ extension ContextShow on BuildContext {
     late final OverlayEntry entry;
     late final OverlayCloser closer;
 
+    // Latched once the entry is actually on screen. Guards the staleness check
+    // below, since an entry reports mounted == false both before it is
+    // inserted and after it is torn down.
+    var wasMounted = false;
+
     final controller = AnimationController(
       vsync: navigator,
       duration: animationDuration,
@@ -110,15 +130,34 @@ extension ContextShow on BuildContext {
 
     Future<void> close([T? result]) async {
       if (completer.isCompleted) return;
-      await controller.reverse();
-      if (entry.mounted) entry.remove();
+
+      // Play the exit animation only while the entry is still on screen. Once
+      // the tree is gone the ticker no longer fires, so awaiting reverse()
+      // would never return — leaving the closer registered and the controller
+      // undisposed for the rest of the process.
+      if (entry.mounted) {
+        await controller.reverse();
+        if (entry.mounted) entry.remove();
+      } else {
+        // The vsync's tree may already be gone, in which case the controller
+        // is still running its entry animation and would be disposed with an
+        // active ticker.
+        controller.stop();
+      }
+
       completer.complete(result);
       controller.dispose();
       _closers.remove(closer);
     }
 
-    final overlaySafeArea =
-        OverlaySafeArea.of(rootOverlay ? navigator.context : this);
+    // The entry is positioned against the overlay it lands in, so the insets
+    // have to be measured against that same surface — not against the context
+    // show() happened to be called from.
+    final overlay = navigator.overlay;
+    final overlaySafeArea = OverlaySafeArea.of(
+      rootOverlay ? navigator.context : this,
+      surface: overlay?.context,
+    );
     final overlayController = OverlayController<T>(close, overlaySafeArea);
 
     Widget backgroundContent =
@@ -190,22 +229,39 @@ extension ContextShow on BuildContext {
     );
 
     entry = OverlayEntry(
-      builder: (context) => Material(
-        type: MaterialType.transparency,
-        child: Stack(
-          children: [backgroundContent, content],
-        ),
-      ),
+      builder: (context) {
+        // Reached only when the Overlay actually builds this entry, which is
+        // the evidence the staleness check needs.
+        wasMounted = true;
+        return Material(
+          type: MaterialType.transparency,
+          child: Stack(
+            children: [backgroundContent, content],
+          ),
+        );
+      },
     );
 
     closer = OverlayCloser(
       ([Object? result]) => close(result is T ? result : null),
       T,
       id ?? completer.hashCode.toString(),
+      // `mounted` only flips true once the Overlay rebuilds, which is a frame
+      // after insert(). Treating "not mounted yet" as stale would drop a
+      // closer that was created earlier in the same frame, so staleness needs
+      // evidence that the entry was live at some point — see `wasMounted`.
+      () => wasMounted && !entry.mounted,
     );
+
+    // Drop closers whose overlay was torn down without close() being called —
+    // a popped route or a disposed app. Nothing else prunes them, so without
+    // this they stay selectable by Overlays.all() for the rest of the process
+    // and keep their AnimationController alive.
+    _closers.removeWhere((c) => c.isStale());
+
     _closers.add(closer);
 
-    navigator.overlay?.insert(entry);
+    overlay?.insert(entry);
     controller.forward();
     if (duration > Duration.zero) {
       Future.delayed(duration, close);

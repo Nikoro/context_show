@@ -1,5 +1,4 @@
 import 'package:context_show/context_show.dart';
-import 'package:context_show/overlay_closer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
