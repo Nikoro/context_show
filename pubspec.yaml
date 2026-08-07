@@ -25,7 +25,7 @@ screenshots:
     path: images/5.gif
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ^3.0.0
 
 dependencies:
   flutter:
@@ -35,4 +35,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  meta: ^1.16.0
+  meta: ^1.19.0
+
+dependency_overrides:
+  meta: ^1.19.0
