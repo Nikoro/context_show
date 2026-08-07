@@ -1,4 +1,6 @@
-## Unreleased
+## 0.3.1
+
+This release fixes how overlays position themselves against the surrounding chrome, and stops closers from outliving the overlays they belong to.
 
 ### 🐛 Bug Fixes
 
@@ -48,9 +50,23 @@
 
 ### 🏗️ API
 
-- `OverlayController` and `OverlaySafeArea` are now exported from
-  `package:context_show/context_show.dart`. They were already reachable
-  through `show`, but could not be named without a direct import.
+- `OverlayController`, `OverlaySafeArea` and `OverlayCloser` are now exported
+  from `package:context_show/context_show.dart`. They already appeared in
+  public signatures, but could not be named without a direct import.
+- **`OverlaySafeArea` can express its insets against a different surface**
+  - `OverlaySafeArea.of` takes an optional `surface`, and the new
+    `OverlaySafeArea.forSurface` re-expresses existing insets relative to a
+    given `BuildContext`.
+  - Both subtract only what the surface already covers, and never go negative.
+- `OverlayCloser` gained an `isStale()` method, reporting whether its overlay
+  was torn down without `close()` being called. The constructor takes an
+  optional trailing callback backing it; existing three-argument calls are
+  unaffected.
+- `AppBarHeight.maybeOf` and `BottomBarHeight.maybeOf` now resolve the
+  `Scaffold` through the new `ScaffoldFinder`, so they work from a context
+  above the `Scaffold` as well as inside it. `AppBarHeight.maybeOf` documents
+  that its result already includes the status bar — do not add
+  `MediaQuery.padding.top` to it.
 
 ## 0.3.0
 
