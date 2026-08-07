@@ -318,6 +318,42 @@ void main() {
       expect(insetDuringBuild, _statusBar);
     });
 
+    testWidgets('a rebuild scheduled before showing still reads the app bar', (
+      tester,
+    ) async {
+      _useStatusBar(tester);
+
+      // A page that changes state and shows an overlay in the same turn — a
+      // dialog flipping a flag, a provider landing — is *dirty* but not
+      // building: the rebuild is scheduled, and the previous children are
+      // still there to walk. Bowing out here (as the mid-build case above
+      // must) costs the app bar height and drops the banner on the status bar.
+      late StateSetter markDirty;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              markDirty = setState;
+              return Scaffold(
+                appBar: AppBar(title: const Text('title')),
+                body: const Placeholder(),
+              );
+            },
+          ),
+        ),
+      );
+      final context = tester.element(find.byType(StatefulBuilder));
+
+      markDirty(() {});
+      expect(
+        context.dirty,
+        isTrue,
+        reason: 'the regression needs a dirty, not-yet-rebuilt element',
+      );
+
+      expect(await _showBannerFrom(tester, context), _appBar);
+    });
+
     testWidgets('nested Scaffolds resolve to the outer chrome', (tester) async {
       _useStatusBar(tester);
       late BuildContext above;

@@ -22,6 +22,16 @@ Discoveries that are *settled* do not live here — they live in
   screen rather than the `Overlay` the entry lands in, and an unrecognised
   bottom bar could report a negative inset. Both fixed, both tested.
 
+  **Post-0.3.1 follow-up.** The downward search bailed out on `context.dirty`,
+  which is far wider than intended: `dirty` means "a rebuild is scheduled", not
+  "building right now", and a merely dirty element still has walkable children.
+  Any page that changed state in the same turn as it showed a banner (a dialog
+  flipping a flag) therefore fell back to the status bar and covered the app
+  bar again. The guard now keys on actually building, with a `try`/`catch`
+  around the walk because `debugDoingBuild` is const false in release.
+  Regression test: "a rebuild scheduled before showing still reads the app
+  bar". Unreleased — consumers are on a path dependency until it ships.
+
 ## Working rules
 
 **Measure before you argue.** Every file here has recorded at least one claim

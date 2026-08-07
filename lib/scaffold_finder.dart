@@ -35,16 +35,14 @@ abstract class ScaffoldFinder {
   static ScaffoldState? _firstBelow(BuildContext context) {
     if (context is! Element || !context.mounted) return null;
 
-    // visitChildElements throws while the element is building, because the
-    // child list is still being assembled. Callers that show an overlay
-    // straight from build() would otherwise crash, so give up on the downward
-    // search and let the caller fall back to MediaQuery.
-    //
-    // `dirty` is the load-bearing check: it is a real field, so it also holds
-    // in release builds. `debugDoingBuild` is debug-only and merely catches
-    // anything `dirty` misses while asserts are enabled.
-    if (context.dirty) return null;
-    assert(!context.debugDoingBuild, 'still building with a clean element');
+    // visitChildElements throws only while the element is *actively building*,
+    // because the child list is still being assembled. A merely dirty element
+    // — one with a rebuild scheduled — still has its previous children and
+    // walks fine, so `dirty` must not gate the search: a page that changes
+    // state just before showing an overlay (a dialog flipping a flag, say) is
+    // dirty at that moment, and giving up there costs it the app bar height
+    // and drops the banner onto the status bar.
+    if (_isBuilding(context)) return null;
 
     var frontier = <Element>[context];
 
@@ -54,14 +52,22 @@ abstract class ScaffoldFinder {
       for (final element in frontier) {
         ScaffoldState? found;
 
-        element.visitChildElements((child) {
-          if (found != null) return;
-          if (child is StatefulElement && child.state is ScaffoldState) {
-            found = child.state as ScaffoldState;
-            return;
-          }
-          next.add(child);
-        });
+        // Defensive: `debugDoingBuild` is a debug-only signal, so in release
+        // an element that is mid-build slips past the guard above and throws
+        // here. Treating that as "no Scaffold below" keeps the caller on its
+        // MediaQuery fallback instead of crashing the app.
+        try {
+          element.visitChildElements((child) {
+            if (found != null) return;
+            if (child is StatefulElement && child.state is ScaffoldState) {
+              found = child.state as ScaffoldState;
+              return;
+            }
+            next.add(child);
+          });
+        } on FlutterError {
+          continue;
+        }
 
         if (found != null) return found;
       }
@@ -70,5 +76,19 @@ abstract class ScaffoldFinder {
     }
 
     return null;
+  }
+
+  /// Whether [element] is building right now, as opposed to merely having a
+  /// rebuild scheduled — only the former makes its child list unsafe to walk.
+  ///
+  /// `debugDoingBuild` is debug-only; in release it is const false, which the
+  /// try/catch around the walk covers.
+  static bool _isBuilding(Element element) {
+    var building = false;
+    assert(() {
+      building = element.debugDoingBuild;
+      return true;
+    }());
+    return building;
   }
 }
