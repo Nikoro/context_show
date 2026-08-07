@@ -30,6 +30,7 @@ Say goodbye to boilerplate code for managing `OverlayEntry` and `AnimationContro
 - 🧩 **Composable animations** – chain multiple transitions fluently `.fade().scale().rotation()`.
 - 🎛️ **Programmatic control** – close overlays from anywhere using `context.close()` with flexible selectors.
 - 🖼️ **Custom Background**: add custom backgrounds or animated backdrops.
+- 📐 **Safe area, your way** – inset below the app bar by default, or draw edge to edge over it with `safeArea: false`.
 - 👆 **Dismissible overlays** – tap outside to close with ease.
 - ⏱️ **Auto-dismiss** – control duration or disable with `Duration.zero`.
 - ✅ **Type-safe results** – returns a `Future<T?>` that resolves when the overlay closes.
@@ -232,6 +233,80 @@ Scaffold(
   </code></pre></td>
   </tr>               
 </table>
+
+## Positioning: Safe Area vs. Full Screen
+
+The overlay **always spans the entire screen**, app bar and status bar included. Nothing is clipped — `safeArea`, `margin` and `backgroundMargin` only decide where your widget sits inside it. So drawing *over* the chrome is fully supported, not a workaround.
+
+### Below the chrome (default)
+
+Content is inset so it clears the status bar, app bar and bottom bar:
+
+```dart
+context.show((_) => Text('Banner'), alignment: Alignment.topCenter);
+```
+
+### Over the app bar and status bar
+
+Opt out of the automatic inset to go edge to edge — useful for full-screen dialogs, dimmed backdrops, or a banner that deliberately covers the app bar:
+
+```dart
+context.show(
+  (_) => Text('Covers everything'),
+  safeArea: false,
+  alignment: Alignment.topCenter,
+);
+```
+
+### Anywhere in between
+
+Pass an explicit `margin` to clear only what you want:
+
+```dart
+context.show(
+  (_) => Text('Custom inset'),
+  margin: const EdgeInsets.only(top: 40),
+  alignment: Alignment.topCenter,
+);
+```
+
+`margin` always wins over `safeArea`.
+
+> **Note:** don't reach for `MediaQuery.paddingOf(context).top` to get the status bar height here — inside a `Scaffold` body the `Scaffold` has already consumed it, so both `paddingOf` and `viewPaddingOf` return zero and your overlay lands at the very top. Use `overlay.safeArea` instead, which is measured against the chrome the overlay actually appears over.
+
+### Per-edge control
+
+`overlay.safeArea` is handed to the builder and stays available even with `safeArea: false`, so you can apply the insets selectively:
+
+```dart
+context.show(
+  (overlay) => Padding(
+    // Clear the bottom bar, but let the content run under the app bar.
+    padding: EdgeInsets.only(bottom: overlay.safeArea.bottom),
+    child: Text('Banner'),
+  ),
+  safeArea: false,
+);
+```
+
+### Full-bleed background, inset content
+
+`backgroundMargin` is independent of `margin`, so a backdrop can cover the whole screen while the content stays clear of the chrome:
+
+```dart
+context.show(
+  (_) => Card(child: Text('Inset content')),
+  background: (_) => Container(color: Colors.black54),
+  backgroundMargin: EdgeInsets.zero, // dim the app bar too
+  dismissible: true,
+);
+```
+
+> **Note:** a `Container` with only a color expands to fill the space, which is what you usually want here. A widget that sizes itself to its child — `ColoredBox`, for instance — collapses instead, since the background is positioned by an `Align`. Wrap it in a `SizedBox.expand` if you hit that.
+
+The insets are resolved from the `Scaffold` your overlay appears over, whether you call `show` from inside the `body` or from the page's own `build` context.
+
+They are also measured against the `Overlay` the entry actually lands in. If you use a nested `Navigator` — a per-tab navigator inside a shell, say — its overlay already starts below the app bar, and the insets account for that instead of clearing the same app bar twice.
 
 ## Closing Overlays Programmatically
 

@@ -1,3 +1,57 @@
+## Unreleased
+
+### 🐛 Bug Fixes
+
+- **Safe area insets are now correct when `show` is called from above the `Scaffold`**
+  - A page showing an overlay from its own `build`/`State` context previously
+    got the status bar height instead of the app bar height, so top banners
+    painted over the app bar and hid the back button.
+  - `Scaffold.maybeOf` only walks upwards; the lookup now falls back to a
+    breadth-first search downwards when there is no `Scaffold` above.
+  - Nested `Scaffold`s resolve to the outer one, which owns the chrome the
+    overlay appears over.
+  - Applies to both `AppBarHeight` and `BottomBarHeight`.
+- An unrecognised `bottomNavigationBar` no longer reports a negative inset.
+- **`close()` no longer hangs on an overlay whose tree was destroyed**
+  - It awaited the exit animation, but a torn-down tree has no ticker to drive
+    it, so the future never completed — leaving the closer registered and its
+    `AnimationController` undisposed for the rest of the process.
+  - The animation is now skipped when the entry is already gone.
+- **Stale closers are pruned**
+  - A closer whose overlay was destroyed without `close()` stayed selectable by
+    `Overlays.all()` forever. Each `show` now drops them.
+  - An overlay that outlives its route is *not* stale: routes are entries in
+    one shared `Overlay`, so a banner shown from a page deliberately survives
+    a `pop`. Call `close()` explicitly if you want it gone with the page.
+- `TransitionBuilders.size` no longer uses the deprecated
+  `SizeTransition.axisAlignment`. Its own `axisAlignment` argument is
+  unchanged and is translated to `alignment` internally.
+- **Overlays in a nested `Navigator` no longer clear the chrome twice**
+  - Insets are measured against the screen, but an `OverlayEntry` is
+    positioned against the `Overlay` it is inserted into, which does not have
+    to start at the top of the screen.
+  - With a nested `Navigator` inside a `Scaffold` body (a per-tab navigator,
+    for example) the overlay already begins below the app bar, so the full
+    inset was applied on top of an origin that had cleared it — leaving a gap
+    the height of the app bar.
+  - `show` now measures the insets against the overlay the entry lands in, and
+    `overlay.safeArea` reports them in that overlay's coordinates.
+
+### 📝 Documentation
+
+- Documented the positioning modes in the README: safe area (default),
+  `safeArea: false` for edge-to-edge over the app bar, explicit `margin` for
+  anything in between, per-edge insets via `overlay.safeArea`, and full-bleed
+  backgrounds via `backgroundMargin`.
+- Removed a docstring for a `fullScreen` parameter that does not exist; the
+  equivalent is `safeArea: false`.
+
+### 🏗️ API
+
+- `OverlayController` and `OverlaySafeArea` are now exported from
+  `package:context_show/context_show.dart`. They were already reachable
+  through `show`, but could not be named without a direct import.
+
 ## 0.3.0
 
 This release improves the `context.close()` API with flexible parameter ordering and includes CI/CD workflow improvements.
