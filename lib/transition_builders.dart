@@ -57,7 +57,13 @@ abstract class TransitionBuilders {
     return SizeTransition(
       sizeFactor: CurvedAnimation(parent: controller, curve: curve),
       axis: axis,
-      axisAlignment: axisAlignment,
+      // SizeTransition.axisAlignment is deprecated in favour of the
+      // two-dimensional `alignment`. This is the translation Flutter documents
+      // for it, so the public `axisAlignment` argument keeps working.
+      alignment: switch (axis) {
+        Axis.horizontal => AlignmentDirectional(axisAlignment, -1),
+        Axis.vertical => AlignmentDirectional(-1, axisAlignment),
+      },
       fixedCrossAxisSizeFactor: fixedCrossAxisSizeFactor,
       child: child,
     );
