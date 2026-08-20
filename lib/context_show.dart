@@ -116,6 +116,10 @@ extension ContextShow on BuildContext {
     // inserted and after it is torn down.
     var wasMounted = false;
 
+    // Set below, once the entry is inserted; cancelled by `close` so a banner
+    // dismissed early does not fire it twice.
+    Timer? autoDismiss;
+
     final controller = AnimationController(
       vsync: navigator,
       duration: animationDuration,
@@ -130,6 +134,7 @@ extension ContextShow on BuildContext {
 
     Future<void> close([T? result]) async {
       if (completer.isCompleted) return;
+      autoDismiss?.cancel();
 
       // Play the exit animation only while the entry is still on screen. Once
       // the tree is gone the ticker no longer fires, so awaiting reverse()
@@ -146,6 +151,19 @@ extension ContextShow on BuildContext {
       }
 
       completer.complete(result);
+      controller.dispose();
+      _closers.remove(closer);
+    }
+
+    // The entry notifies its listeners when it is removed from the overlay,
+    // including when the whole tree goes. At that point the controller's vsync
+    // is on its way out, so the animation is abandoned rather than reversed —
+    // there is no surface left to animate on.
+    void disposeIfOrphaned() {
+      if (entry.mounted || !wasMounted || completer.isCompleted) return;
+      autoDismiss?.cancel();
+      controller.stop();
+      completer.complete(null);
       controller.dispose();
       _closers.remove(closer);
     }
@@ -264,9 +282,26 @@ extension ContextShow on BuildContext {
     overlay?.insert(entry);
     controller.forward();
     if (duration > Duration.zero) {
-      Future.delayed(duration, close);
+      // Held so the auto-dismiss can be cancelled: a torn-down tree must not
+      // leave the controller alive until this fires. See `_disposeIfOrphaned`.
+      autoDismiss = Timer(duration, close);
     }
-    return completer.future;
+
+    // The vsync is the NavigatorState, and nothing here is told when that is
+    // disposed. Until the entry is torn down the controller is safe; once it
+    // is, an undisposed controller is a ticker outliving its provider, which
+    // is exactly what Flutter asserts on. `entry.mounted` flips on removal,
+    // so listening to the entry is the one signal available for it.
+    //
+    // Without this the window is `duration` wide: a self-dismissing banner
+    // shown just before its screen goes away kept its ticker for the whole
+    // visible duration, and disposing the navigator inside that window threw
+    // "was disposed with an active Ticker".
+    entry.addListener(disposeIfOrphaned);
+
+    return completer.future.whenComplete(() {
+      entry.removeListener(disposeIfOrphaned);
+    });
   }
 
   /// Closes overlays shown via [show] in this context.

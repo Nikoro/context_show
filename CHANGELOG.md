@@ -1,3 +1,20 @@
+## 0.3.3
+
+This release fixes an overlay's animation ticker outliving the tree it was shown in.
+
+### 🐛 Bug Fixes
+
+- **A self-dismissing overlay no longer keeps its ticker alive after its tree is gone**
+  - `AnimationController` uses the `NavigatorState` as its vsync, but nothing
+    disposed it until `close` ran. With `duration` set, `close` was parked on a
+    timer, so the controller stayed alive for the whole visible duration.
+  - Tearing the screen down inside that window disposed the navigator while its
+    ticker was still active, throwing `NavigatorState ... was disposed with an
+    active Ticker`. A banner shown just before leaving a page hit it routinely.
+  - The entry is now listened to: when it leaves the overlay the pending
+    auto-dismiss is cancelled and the controller is stopped and disposed at
+    once, instead of being left for the next `show` to prune.
+
 ## 0.3.2
 
 This release fixes safe area insets being lost when an overlay is shown from a page that rebuilt in the same turn.

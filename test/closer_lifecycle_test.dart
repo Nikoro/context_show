@@ -70,7 +70,7 @@ void main() {
       expect(_registered(next), 0);
     });
 
-    testWidgets('a stale closer is pruned by the next show', (tester) async {
+    testWidgets('an orphaned closer is dropped with its tree', (tester) async {
       final context = await _pumpApp(tester);
       context.show(
         (_) => const Text('doomed', textDirection: TextDirection.ltr),
@@ -81,8 +81,12 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pumpAndSettle();
 
+      // Dropped as the entry is torn down rather than left for the next show
+      // to prune: the closer holds an AnimationController whose vsync is the
+      // NavigatorState now being disposed, so waiting is what let a ticker
+      // outlive its provider.
       final next = await _pumpApp(tester);
-      expect(_registered(next), 1, reason: 'stale closer still lingers');
+      expect(_registered(next), 0, reason: 'the orphan should already be gone');
 
       next.show(
         (_) => const Text('fresh', textDirection: TextDirection.ltr),
@@ -90,7 +94,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Only the live one survives — the dead one was dropped, not counted.
       expect(_registered(next), 1);
 
       next.close();
@@ -161,6 +164,34 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
+
+      final next = await _pumpApp(tester);
+      expect(_registered(next), 0);
+    });
+
+    testWidgets('the tree going away mid-entry-animation disposes the ticker', (
+      tester,
+    ) async {
+      final context = await _pumpApp(tester);
+      context.show(
+        (_) => const Text('toast', textDirection: TextDirection.ltr),
+        duration: const Duration(seconds: 4),
+      );
+
+      // Deliberately NOT settled: the entry animation is still running, so the
+      // controller's ticker is live. This is the shape a real app hits when a
+      // screen is torn down right after showing a self-dismissing banner —
+      // the auto-dismiss `close` is still parked on its Future.delayed, so
+      // nothing has disposed the controller yet.
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Disposing the vsync (the NavigatorState) with that ticker still active
+      // is what trips "was disposed with an active Ticker".
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
 
       final next = await _pumpApp(tester);
       expect(_registered(next), 0);
