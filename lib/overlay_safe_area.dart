@@ -1,6 +1,6 @@
 import 'package:context_show/app_bar_height.dart';
 import 'package:context_show/bottom_bar_height.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A class that holds the safe area for the overlay.
 ///

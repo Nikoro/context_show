@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Finds the [ScaffoldState] whose chrome an overlay shown from a given
 /// context will appear over.

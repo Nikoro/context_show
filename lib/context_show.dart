@@ -5,7 +5,7 @@ import 'package:context_show/overlay_closer.dart';
 import 'package:context_show/overlay_controller.dart';
 import 'package:context_show/overlay_safe_area.dart';
 import 'package:context_show/overlays.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 export 'package:context_show/extensions.dart';
 export 'package:context_show/overlay_closer.dart';
