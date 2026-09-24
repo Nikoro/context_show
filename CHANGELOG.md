@@ -1,3 +1,19 @@
+## 0.4.0
+
+This release moves the package to `package:material_ui`.
+
+### ⚠️ Breaking Changes
+
+- **Material now comes from `package:material_ui`**
+  - Flutter's Material library ships separately as `package:material_ui`, and
+    its `Scaffold`, `Theme` and `ListTile` are different classes from the ones in
+    `package:flutter/material.dart`.
+  - The app bar and bottom bar offsets are found by looking up the nearest
+    `Scaffold`. An app built on `material_ui` has no `flutter/material`
+    `Scaffold` above the overlay, so on 0.3.x a banner ignored the app bar and
+    the bottom navigation bar.
+  - Apps must build their UI with `package:material_ui` to get those offsets.
+
 ## 0.3.3
 
 This release fixes an overlay's animation ticker outliving the tree it was shown in.
